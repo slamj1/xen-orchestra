@@ -1,4 +1,6 @@
 import createLogger from 'debug'
+import { identity } from 'lodash'
+import { timeout as pTimeout } from 'promise-toolbox'
 
 const debug = createLogger('xo:hooks')
 
@@ -19,21 +21,33 @@ function emitAsync (event) {
   }
 
   const onError = opts != null && opts.onError
+  const timeout = opts != null && opts.timeout
+
+  const addTimeout =
+    timeout === undefined
+      ? identity
+      : (promise, listener) =>
+        pTimeout.call(promise, timeout, () => {
+          throw new Error(
+            `timeout for ${listener.name || 'a unnamed handler'}`
+          )
+        })
 
   return Promise.all(
     this.listeners(event).map(listener =>
-      new Promise(resolve => {
-        resolve(listener.apply(this, args))
-      }).catch(onError)
+      addTimeout(
+        new Promise(resolve => resolve(listener.apply(this, args))),
+        listener
+      ).catch(onError)
     )
   )
 }
 
-const makeSingletonHook = (hook, postEvent) => {
+const makeSingletonHook = (hook, postEvent, opts) => {
   let promise
   return function () {
     if (promise === undefined) {
-      promise = runHook(this, hook)
+      promise = runHook(this, hook, opts)
       promise.then(() => {
         this.removeAllListeners(hook)
         this.emit(postEvent)
@@ -44,7 +58,7 @@ const makeSingletonHook = (hook, postEvent) => {
   }
 }
 
-const runHook = (app, hook) => {
+const runHook = (app, hook, opts) => {
   debug(`${hook} start…`)
   const promise = emitAsync.call(
     app,
@@ -54,6 +68,7 @@ const runHook = (app, hook) => {
           `[WARN] hook ${hook} failure:`,
           (error != null && error.stack) || error
         ),
+      ...opts,
     },
     hook
   )
@@ -79,5 +94,7 @@ export default {
   // Run *stop* async listeners.
   //
   // They close connections, unmount file systems, save states, etc.
-  stop: makeSingletonHook('stop', 'stopped'),
+  stop: makeSingletonHook('stop', 'stopped', {
+    timeout: 10e3,
+  }),
 }
