@@ -278,6 +278,8 @@ export default class Api {
 
       let result = await method.call(context, resolvedParams)
 
+      this._xo.emit('call', name, params)
+
       // If nothing was returned, consider this operation a success
       // and return true.
       if (result === undefined) {

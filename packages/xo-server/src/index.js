@@ -218,24 +218,34 @@ async function registerPlugin (pluginPath, pluginName) {
   })()
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
-  const {
-    default: factory = plugin,
+  let {
+    default: instance = plugin,
     configurationSchema,
     configurationPresets,
     testSchema,
   } = plugin
 
-  // The default export can be either a factory or directly a plugin
-  // instance.
-  const instance = isFunction(factory)
-    ? factory({
-        xo: this,
-        getDataDir: () => {
-          const dir = `${this._config.datadir}/${pluginName}`
-          return ensureDir(dir).then(() => dir)
-        },
-      })
-    : factory
+  const handleFactory = factory =>
+    isFunction(factory)
+      ? factory({
+          xo: this,
+          getDataDir: () => {
+            const dir = `${this._config.datadir}/${pluginName}`
+            return ensureDir(dir).then(() => dir)
+          },
+        })
+      : factory
+  ;[
+    instance,
+    configurationSchema,
+    configurationPresets,
+    testSchema,
+  ] = await Promise.all([
+    handleFactory(instance),
+    handleFactory(configurationSchema),
+    handleFactory(configurationPresets),
+    handleFactory(testSchema),
+  ])
 
   await this.registerPlugin(
     pluginName,
