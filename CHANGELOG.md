@@ -11,6 +11,7 @@
 - [Backup NG form] Add link to plugins setting [#3457](https://github.com/vatesfr/xen-orchestra/issues/3457) (PR [#3514](https://github.com/vatesfr/xen-orchestra/pull/3514))
 - [Backup reports] Add job and run ID [#3488](https://github.com/vatesfr/xen-orchestra/issues/3488) (PR [#3516](https://github.com/vatesfr/xen-orchestra/pull/3516))
 - [Usage Report] Add top 3 VMs which use the most IOPS read/write/total [#3308](https://github.com/vatesfr/xen-orchestra/issues/3308) (PR [#3463](https://github.com/vatesfr/xen-orchestra/pull/3463))
+- Update noVNC to 1.0.0 [3080](https://github.com/vatesfr/xen-orchestra/issues/3080) (PR [#3152](https://github.com/vatesfr/xen-orchestra/pull/3152))
 
 ### Bug fixes
 
