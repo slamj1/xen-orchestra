@@ -24,7 +24,7 @@ export default class {
         () => this._pluginsMetadata.get(),
         plugins =>
           Promise.all(
-            mapToArray(plugins, plugin => this._pluginsMetadata.save(plugin))
+            mapToArray(plugins, plugin => this._pluginsMetadata.update(plugin))
           )
       )
     })
@@ -74,7 +74,7 @@ export default class {
       ;({ autoload, configuration } = metadata)
     } else {
       console.log(`[NOTICE] register plugin ${name} for the first time`)
-      await this._pluginsMetadata.save({
+      await this._pluginsMetadata.update({
         id,
         autoload,
       })
