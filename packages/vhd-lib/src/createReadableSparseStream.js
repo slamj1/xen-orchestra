@@ -17,7 +17,7 @@ import { set as setBitmap } from './_bitmap'
 const VHD_BLOCK_SIZE_SECTORS = VHD_BLOCK_SIZE_BYTES / SECTOR_SIZE
 
 /**
- * @returns {Array} an array of occupation bitmap, each bit mapping an input block size of bytes
+ * fills the bat Buffer argument with the content of the blockAddressList
  */
 function createBAT (
   firstBlockPosition,
@@ -81,6 +81,7 @@ export default asyncIteratorToStream(async function * (
   const bat = Buffer.alloc(tablePhysicalSizeBytes, 0xff)
   createBAT(firstBlockPosition, blockAddressList, ratio, bat, bitmapSize)
   let position = 0
+
   function * yieldAndTrack (buffer, expectedPosition) {
     if (expectedPosition !== undefined) {
       assert.strictEqual(position, expectedPosition)
@@ -90,11 +91,21 @@ export default asyncIteratorToStream(async function * (
       position += buffer.length
     }
   }
+
+  function fixBabelAsyncIterator (obj) {
+    // babel seems to have a bug where it forgets to add this property
+    // this test fails without this function: https://github.com/babel/babel/blob/master/packages/babel-helpers/src/helpers.js#L93
+    if (!obj[Symbol.iterator]) {
+      obj[Symbol.iterator] = () => obj
+    }
+    return obj
+  }
+
   async function * generateFileContent (blockIterator, bitmapSize, ratio) {
     let currentBlock = -1
     let currentVhdBlockIndex = -1
     let currentBlockWithBitmap = Buffer.alloc(0)
-    for await (const next of blockIterator) {
+    for await (const next of fixBabelAsyncIterator(blockIterator)) {
       currentBlock++
       assert.strictEqual(blockAddressList[currentBlock], next.offsetBytes)
       const batIndex = Math.floor(next.offsetBytes / VHD_BLOCK_SIZE_BYTES)
@@ -120,9 +131,10 @@ export default asyncIteratorToStream(async function * (
     }
     yield * yieldAndTrack(currentBlockWithBitmap)
   }
+
   yield * yieldAndTrack(footer, 0)
   yield * yieldAndTrack(header, FOOTER_SIZE)
   yield * yieldAndTrack(bat, FOOTER_SIZE + HEADER_SIZE)
-  yield * generateFileContent(blockIterator, bitmapSize, ratio)
+  yield * fixBabelAsyncIterator(generateFileContent(blockIterator, bitmapSize, ratio))
   yield * yieldAndTrack(footer)
 })
