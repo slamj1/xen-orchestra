@@ -87,10 +87,10 @@ import {
 
 import styles from './index.css'
 import HostItem from './host-item'
-import PoolItem from './pool-item'
-import VmItem from './vm-item'
+import Pool from './pool-item'
+import Vm from './vm-item'
 import TemplateItem from './template-item'
-import SrItem from './sr-item'
+import Sr from './sr-item'
 
 const ITEMS_PER_PAGE = 20
 
@@ -177,7 +177,7 @@ const OPTIONS = {
         labelId: 'vmRemoveButton',
       },
     ],
-    Item: VmItem,
+    Item: Vm,
     showPoolsSelector: true,
     showHostsSelector: true,
     showResourceSetsSelector: true,
@@ -206,7 +206,7 @@ const OPTIONS = {
     defaultFilter: '',
     filters: homeFilters.pool,
     getActions: noop,
-    Item: PoolItem,
+    Item: Pool,
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
     ],
@@ -251,7 +251,7 @@ const OPTIONS = {
       },
       { handler: forgetSrs, icon: 'sr-forget', tooltip: _('srsForget') },
     ],
-    Item: SrItem,
+    Item: Sr,
     showPoolsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },

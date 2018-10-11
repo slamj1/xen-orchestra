@@ -57,7 +57,7 @@ import styles from './index.css'
     }
   ),
 })
-export default class SrItem extends Component {
+export default class Sr extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _removeTag = tag => removeTag(this.props.item.id, tag)
   _setNameDescription = nameDescription =>

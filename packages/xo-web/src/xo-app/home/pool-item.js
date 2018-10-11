@@ -58,7 +58,7 @@ import styles from './index.css'
     nVms: getNumberOfVms,
   }
 })
-export default class PoolItem extends Component {
+export default class Pool extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _removeTag = tag => removeTag(this.props.item.id, tag)
   _setNameDescription = nameDescription =>

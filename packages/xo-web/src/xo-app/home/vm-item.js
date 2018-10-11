@@ -47,7 +47,7 @@ import styles from './index.css'
     'size'
   ),
 }))
-export default class VmItem extends Component {
+export default class Vm extends Component {
   get _isRunning () {
     const vm = this.props.item
     return vm && vm.power_state === 'Running'
