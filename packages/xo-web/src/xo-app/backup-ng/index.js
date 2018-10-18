@@ -55,61 +55,63 @@ const _runBackupNgJob = ({ id, name, schedule }) =>
 
 const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
   <table>
-    <tr className='text-muted'>
-      <th>{_('scheduleName')}</th>
-      <th>{_('scheduleCron')}</th>
-      <th>{_('scheduleTimezone')}</th>
-      <th>{_('scheduleExportRetention')}</th>
-      <th>{_('scheduleCopyRetention')}</th>
-      <th>{_('scheduleSnapshotRetention')}</th>
-      <th>{_('scheduleRun')}</th>
-    </tr>
-    {map(schedulesByJob && schedulesByJob[job.id], schedule => (
-      <tr key={schedule.id}>
-        <td>{schedule.name}</td>
-        <td>{schedule.cron}</td>
-        <td>{schedule.timezone}</td>
-        <td>{job.settings[schedule.id].exportRetention}</td>
-        <td>{job.settings[schedule.id].copyRetention}</td>
-        <td>{job.settings[schedule.id].snapshotRetention}</td>
-        <td>
-          <StateButton
-            disabledLabel={_('stateDisabled')}
-            disabledHandler={enableSchedule}
-            disabledTooltip={_('logIndicationToEnable')}
-            enabledLabel={_('stateEnabled')}
-            enabledHandler={disableSchedule}
-            enabledTooltip={_('logIndicationToDisable')}
-            handlerParam={schedule.id}
-            state={schedule.enabled}
-          />
-        </td>
-        <td>
-          {job.runId !== undefined ? (
-            <ActionButton
-              btnStyle='danger'
-              handler={cancelJob}
-              handlerParam={job}
-              icon='cancel'
-              key='cancel'
-              size='small'
-              tooltip={_('formCancel')}
-            />
-          ) : (
-            <ActionButton
-              btnStyle='primary'
-              data-id={job.id}
-              data-name={job.name}
-              data-schedule={schedule.id}
-              handler={_runBackupNgJob}
-              icon='run-schedule'
-              key='run'
-              size='small'
-            />
-          )}
-        </td>
+    <tbody>
+      <tr className='text-muted'>
+        <th>{_('scheduleName')}</th>
+        <th>{_('scheduleCron')}</th>
+        <th>{_('scheduleTimezone')}</th>
+        <th>{_('scheduleExportRetention')}</th>
+        <th>{_('scheduleCopyRetention')}</th>
+        <th>{_('scheduleSnapshotRetention')}</th>
+        <th>{_('scheduleRun')}</th>
       </tr>
-    ))}
+      {map(schedulesByJob && schedulesByJob[job.id], schedule => (
+        <tr key={schedule.id}>
+          <td>{schedule.name}</td>
+          <td>{schedule.cron}</td>
+          <td>{schedule.timezone}</td>
+          <td>{job.settings[schedule.id].exportRetention}</td>
+          <td>{job.settings[schedule.id].copyRetention}</td>
+          <td>{job.settings[schedule.id].snapshotRetention}</td>
+          <td>
+            <StateButton
+              disabledLabel={_('stateDisabled')}
+              disabledHandler={enableSchedule}
+              disabledTooltip={_('logIndicationToEnable')}
+              enabledLabel={_('stateEnabled')}
+              enabledHandler={disableSchedule}
+              enabledTooltip={_('logIndicationToDisable')}
+              handlerParam={schedule.id}
+              state={schedule.enabled}
+            />
+          </td>
+          <td>
+            {job.runId !== undefined ? (
+              <ActionButton
+                btnStyle='danger'
+                handler={cancelJob}
+                handlerParam={job}
+                icon='cancel'
+                key='cancel'
+                size='small'
+                tooltip={_('formCancel')}
+              />
+            ) : (
+              <ActionButton
+                btnStyle='primary'
+                data-id={job.id}
+                data-name={job.name}
+                data-schedule={schedule.id}
+                handler={_runBackupNgJob}
+                icon='run-schedule'
+                key='run'
+                size='small'
+              />
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
   </table>
 )
 
