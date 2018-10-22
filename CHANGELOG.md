@@ -25,6 +25,7 @@
 - [Backup NG logs] Disable state filters with no entries [#3438](https://github.com/vatesfr/xen-orchestra/issues/3438) (PR [#3442](https://github.com/vatesfr/xen-orchestra/pull/3442))
 - [ACLs] Global performance improvement on UI for non-admin users [#3578](https://github.com/vatesfr/xen-orchestra/issues/3578) (PR [#3584](https://github.com/vatesfr/xen-orchestra/pull/3584))
 - [Backup NG] Improve the Schedule's view (Replace table by list) [#3491](https://github.com/vatesfr/xen-orchestra/issues/3491) (PR [#3586](https://github.com/vatesfr/xen-orchestra/pull/3586))
+- [xo-server] Use @xen-orchestra/log for basic logging [#3555](https://github.com/vatesfr/xen-orchestra/issues/3555) (PR [#3579](https://github.com/vatesfr/xen-orchestra/pull/3579))
 
 ### Bug fixes
 
@@ -38,6 +39,7 @@
 ### Released packages
 
 - xo-common v0.1.2
+- @xen-orchestra/log v0.1.0
 - @xen-orchestra/fs v0.4.0
 - complex-matcher v0.5.0
 - vhd-lib v0.4.0
