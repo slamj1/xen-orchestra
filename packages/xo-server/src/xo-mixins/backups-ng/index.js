@@ -787,7 +787,7 @@ export default class BackupNg {
             })
           )
         } catch (error) {
-          log.warn(`listVmBackups for remote ${remoteId}: ${error}`)
+          log.warn(`listVmBackups for remote ${remoteId}:`, { error })
         }
       })
     )
@@ -1627,7 +1627,7 @@ export default class BackupNg {
           // Do not fail on corrupted VHDs (usually uncleaned temporary files),
           // they are probably inconsequent to the backup process and should not
           // fail it.
-          log.warn(`BackupNg#_deleteVhd ${path} ${error}`)
+          log.warn(`BackupNg#_deleteVhd ${path}`, { error })
         }
       }
     )
@@ -1679,7 +1679,7 @@ export default class BackupNg {
               backups.push(metadata)
             }
           } catch (error) {
-            log.warn(`_listVmBackups ${path} ${error}`)
+            log.warn(`_listVmBackups ${path}`, { error })
           }
         })
       )
