@@ -48,117 +48,6 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
   return 1
 }
 
-const TASK_HANDLER = {
-  'job.start': ({
-    consolidated,
-    data,
-    id,
-    runId,
-    runningJobs,
-    started,
-    time,
-  }) => {
-    if (
-      (data.type === 'backup' || data.key === undefined) &&
-      (runId === undefined || runId === id)
-    ) {
-      const { scheduleId, jobId } = data
-      consolidated[id] = started[id] = {
-        data: data.data,
-        id,
-        jobId,
-        jobName: data.jobName,
-        scheduleId,
-        start: time,
-        status: runningJobs[jobId] === id ? 'pending' : 'interrupted',
-      }
-    }
-  },
-  'job.end': ({ data, started, time }) => {
-    const { runJobId } = data
-    const log = started[runJobId]
-    if (log !== undefined) {
-      delete started[runJobId]
-      log.end = time
-      log.status = computeStatusAndSortTasks(
-        getStatus((log.result = data.error)),
-        log.tasks
-      )
-    }
-  },
-  'task.start': ({
-    consolidated,
-    data,
-    id,
-    message,
-    runningRestores,
-    started,
-    time,
-  }) => {
-    const parent = started[data.parentId]
-    if (parent !== undefined) {
-      ;(parent.tasks || (parent.tasks = [])).push(
-        (started[id] = {
-          data: data.data,
-          id,
-          message,
-          start: time,
-          status: parent.status,
-        })
-      )
-    } else if (message === 'restore') {
-      consolidated[id] = started[id] = {
-        data: data.data,
-        id,
-        message,
-        start: time,
-        status: runningRestores.has(id) ? 'pending' : 'interrupted',
-      }
-    }
-  },
-  'task.end': ({ data, started, time }) => {
-    const { taskId } = data
-    const log = started[taskId]
-    if (log !== undefined) {
-      // TODO: merge/transfer work-around
-      delete started[taskId]
-      log.end = time
-      log.status = computeStatusAndSortTasks(
-        getStatus((log.result = data.result), data.status),
-        log.tasks
-      )
-    }
-  },
-  'jobCall.start': ({ data, id, started, time }) => {
-    const parent = started[data.runJobId]
-    if (parent !== undefined) {
-      ;(parent.tasks || (parent.tasks = [])).push(
-        (started[id] = {
-          data: {
-            type: 'VM',
-            id: data.params.id,
-          },
-          id,
-          start: time,
-          status: parent.status,
-        })
-      )
-    }
-  },
-  'jobCall.end': ({ data, started, time }) => {
-    const { runCallId } = data
-    const log = started[runCallId]
-    if (log !== undefined) {
-      delete started[runCallId]
-      log.end = time
-      log.status = computeStatusAndSortTasks(
-        getStatus((log.result = data.error)),
-        log.tasks
-      )
-    }
-  },
-}
-
 export default {
   async getBackupNgLogs (runId?: string) {
     const { runningJobs, runningRestores } = this
@@ -169,30 +58,112 @@ export default {
       this.getLogs('restore'),
     ])
 
-    forEach(restoreLogs, ({ data, time, message }, id) =>
-      TASK_HANDLER[data.event]({
-        consolidated,
-        data,
-        id,
-        message,
-        runningRestores,
-        started,
-        time,
-      })
-    )
+    const handleTask = ({ data, time, message }, id) => {
+      const { event } = data
+      if (event !== 'task.start' && event !== 'task.end') {
+        return
+      }
 
-    forEach(jobLogs, ({ data, time, message }, id) =>
-      TASK_HANDLER[data.event]({
-        consolidated,
-        data,
-        id,
-        message,
-        runId,
-        runningJobs,
-        started,
-        time,
-      })
-    )
+      if (event === 'task.start') {
+        const parent = started[data.parentId]
+        if (parent !== undefined) {
+          ;(parent.tasks || (parent.tasks = [])).push(
+            (started[id] = {
+              data: data.data,
+              id,
+              message,
+              start: time,
+              status: parent.status,
+            })
+          )
+          return
+        }
+
+        if (message === 'restore') {
+          consolidated[id] = started[id] = {
+            data: data.data,
+            id,
+            message,
+            start: time,
+            status: runningRestores.has(id) ? 'pending' : 'interrupted',
+          }
+        }
+      } else {
+        const { taskId } = data
+        const log = started[taskId]
+        if (log !== undefined) {
+          // TODO: merge/transfer work-around
+          delete started[taskId]
+          log.end = time
+          log.status = computeStatusAndSortTasks(
+            getStatus((log.result = data.result), data.status),
+            log.tasks
+          )
+        }
+      }
+    }
+
+    forEach(restoreLogs, handleTask)
+
+    forEach(jobLogs, ({ data, time, message }, id) => {
+      const { event } = data
+      if (event === 'job.start') {
+        if (
+          (data.type === 'backup' || data.key === undefined) &&
+          (runId === undefined || runId === id)
+        ) {
+          const { scheduleId, jobId } = data
+          consolidated[id] = started[id] = {
+            data: data.data,
+            id,
+            jobId,
+            jobName: data.jobName,
+            scheduleId,
+            start: time,
+            status: runningJobs[jobId] === id ? 'pending' : 'interrupted',
+          }
+        }
+      } else if (event === 'job.end') {
+        const { runJobId } = data
+        const log = started[runJobId]
+        if (log !== undefined) {
+          delete started[runJobId]
+          log.end = time
+          log.status = computeStatusAndSortTasks(
+            getStatus((log.result = data.error)),
+            log.tasks
+          )
+        }
+      } else if (event === 'jobCall.start') {
+        const parent = started[data.runJobId]
+        if (parent !== undefined) {
+          ;(parent.tasks || (parent.tasks = [])).push(
+            (started[id] = {
+              data: {
+                type: 'VM',
+                id: data.params.id,
+              },
+              id,
+              start: time,
+              status: parent.status,
+            })
+          )
+        }
+      } else if (event === 'jobCall.end') {
+        const { runCallId } = data
+        const log = started[runCallId]
+        if (log !== undefined) {
+          delete started[runCallId]
+          log.end = time
+          log.status = computeStatusAndSortTasks(
+            getStatus((log.result = data.error)),
+            log.tasks
+          )
+        }
+      } else {
+        handleTask({ data, time, message }, id)
+      }
+    })
     return runId === undefined ? consolidated : consolidated[runId]
   },
 }
